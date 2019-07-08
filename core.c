@@ -36,11 +36,13 @@
 #include "platform/http.h"
 #include "platform/device.h"
 #include <stdio.h>
+#include <string.h>
 
 #define MIN_SIZE_TO_HALFSIZE 480
 
 gl_error *gl_errors_hash = NULL;
 static int m_framebuffer_name = -1;
+bool is_extracted = false;
 
 /**
  * @name	run_file
@@ -48,16 +50,40 @@ static int m_framebuffer_name = -1;
  * @param	filename - (const char*) filename of the file to run
  * @retval	bool - (true | false) depending on whether running the file was successful
  */
+
+ char checkFileSize(int lastLength, const char *filename) {
+     sleep(1);
+     char *contents1 = core_load_url(filename);
+       int currentLength = strlen(contents1);
+       if(currentLength > lastLength || currentLength < lastLength){
+           checkFileSize(currentLength, filename);
+          }
+           else{
+               //do nothing to exit from method and continue script evaluation
+                return *contents1;
+              }
+}
+
+ 
 static inline bool run_file(const char *filename) {
     char *contents = core_load_url(filename);
-
+    if(strcmp(filename, "native.js")==0)
+    {
+          char *contents2 = checkFileSize(strlen(contents), filename);
+    } 
+    
     if (contents) {
-        eval_str(contents, filename);
-
+        int len = strlen(contents);
+    const char *last_100 = &contents[len-100];
+    LOG("{core} Contents last 100: %s", last_100);
+        bool isEvaled = eval_str(contents, filename);
         LOG("{core} Evaluated JavaScript from %s", filename);
 
-        free(contents);
-        return true;
+        if(strcmp(filename, "native.js")!=0)
+            {
+                 // free(contents);
+            }
+        return isEvaled;
     } else {
         LOG("{core} WARNING: Error reading JavaScript from %s", filename);
         return false;
@@ -154,9 +180,18 @@ bool core_init_js(const char *uri, const char *version, jobject thiz) {
 }
 
 bool core_run_native_js_script() {
+   /* while(!is_extracted){
+        LOG("{core}: while(!is_extracted){} in native core_run_native_js_script()");
+   }
+   */
+    return run_file("native.js");
+}
 
-return run_file("native.js");
 
+
+
+void core_set_is_extracted(bool extracted) {
+    is_extracted = extracted;
 }
 
 
@@ -167,6 +202,12 @@ return run_file("native.js");
  */
 void core_run() {
     char buf[64];
+
+    /*while(!is_extracted){
+        LOG("{core}: while(!is_extracted){} in native core_run()");
+    }
+    */
+
     snprintf(buf, sizeof(buf), "jsio('import %s;')", config_get_entry_point());
     eval_str(buf, "entry_point.js");
 }

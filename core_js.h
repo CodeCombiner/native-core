@@ -34,7 +34,7 @@ extern bool js_ready;
 
 bool init_js(const char *uri, const char *version, jobject jobj);
 bool destroy_js();
-void eval_str(const char *str, const char * filename);
+bool eval_str(const char *str, const char * filename);
 void js_tick(long dt);
 void js_dispatch_event(const char *evt);
 void js_on_pause();

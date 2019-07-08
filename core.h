@@ -48,6 +48,7 @@ void core_run();
 void core_destroy();
 void core_reset();
 void core_tick(long dt);
+void core_set_is_extracted(bool extracted);
 
 #ifdef __cplusplus
 }
